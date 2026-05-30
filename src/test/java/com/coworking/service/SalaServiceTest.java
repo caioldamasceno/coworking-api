@@ -52,7 +52,7 @@ class SalaServiceTest {
     void listarTodas_deveConverterCadaSalaEmDto() {
         Sala s1 = new Sala("Sala Azul", TipoSala.COLETIVA, 10);
         s1.setId(1L);
-        Sala s2 = new Sala("Auditorio", TipoSala.AUDITORIO, 100);
+        Sala s2 = new Sala("Auditorio", TipoSala.AUDITORIO, 40);
         s2.setId(2L);
         when(salaRepository.findAll()).thenReturn(List.of(s1, s2));
 

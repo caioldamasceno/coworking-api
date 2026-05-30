@@ -25,7 +25,7 @@ class SalaMapperTest {
 
     @Test
     void toResponse_deveMapearOsCampos() {
-        Sala sala = new Sala("Auditorio", TipoSala.AUDITORIO, 120);
+        Sala sala = new Sala("Auditorio", TipoSala.AUDITORIO, 40);
         sala.setId(7L);
 
         SalaResponseDTO dto = salaMapper.toResponse(sala);
@@ -33,6 +33,6 @@ class SalaMapperTest {
         assertThat(dto.id()).isEqualTo(7L);
         assertThat(dto.nome()).isEqualTo("Auditorio");
         assertThat(dto.tipo()).isEqualTo(TipoSala.AUDITORIO);
-        assertThat(dto.capacidade()).isEqualTo(120);
+        assertThat(dto.capacidade()).isEqualTo(40);
     }
 }

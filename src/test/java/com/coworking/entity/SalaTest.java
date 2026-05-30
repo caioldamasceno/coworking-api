@@ -23,10 +23,10 @@ class SalaTest {
 
     @Test
     void construtorComArgumentos_devePreencherOsCampos() {
-        Sala sala = new Sala("Auditorio", TipoSala.AUDITORIO, 120);
+        Sala sala = new Sala("Auditorio", TipoSala.AUDITORIO, 40);
 
         assertThat(sala.getNome()).isEqualTo("Auditorio");
         assertThat(sala.getTipo()).isEqualTo(TipoSala.AUDITORIO);
-        assertThat(sala.getCapacidade()).isEqualTo(120);
+        assertThat(sala.getCapacidade()).isEqualTo(40);
     }
 }

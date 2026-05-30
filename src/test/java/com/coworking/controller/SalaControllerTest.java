@@ -6,6 +6,8 @@ import com.coworking.enums.TipoSala;
 import com.coworking.service.SalaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -57,14 +59,28 @@ class SalaControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    void cadastrar_comCapacidadeInvalida_deveRetornar400() throws Exception {
-        SalaRequestDTO invalido = new SalaRequestDTO("Sala X", TipoSala.COLETIVA, 0);
+    @ParameterizedTest
+    @ValueSource(ints = {2, 50, 0, -1, 100})
+    void cadastrar_comCapacidadeForaDoIntervalo_deveRetornar400(int capacidade) throws Exception {
+        SalaRequestDTO invalido = new SalaRequestDTO("Sala X", TipoSala.COLETIVA, capacidade);
 
         mockMvc.perform(post("/salas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalido)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {3, 49})
+    void cadastrar_naCapacidadeLimiteValida_deveRetornar201(int capacidade) throws Exception {
+        SalaRequestDTO request = new SalaRequestDTO("Sala X", TipoSala.COLETIVA, capacidade);
+        when(salaService.cadastrar(any(SalaRequestDTO.class)))
+                .thenReturn(new SalaResponseDTO(1L, "Sala X", TipoSala.COLETIVA, capacidade));
+
+        mockMvc.perform(post("/salas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
     }
 
     @Test
