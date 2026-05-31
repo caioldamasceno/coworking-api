@@ -35,4 +35,17 @@ class SalaMapperTest {
         assertThat(dto.tipo()).isEqualTo(TipoSala.AUDITORIO);
         assertThat(dto.capacidade()).isEqualTo(40);
     }
+
+    @Test
+    void aplicar_deveSobrescreverOsCamposDaSalaExistente() {
+        Sala sala = new Sala("Sala Antiga", TipoSala.COLETIVA, 10);
+        sala.setId(3L);
+
+        salaMapper.aplicar(new SalaRequestDTO("Sala Nova", TipoSala.INDIVIDUAL, 4), sala);
+
+        assertThat(sala.getId()).isEqualTo(3L);
+        assertThat(sala.getNome()).isEqualTo("Sala Nova");
+        assertThat(sala.getTipo()).isEqualTo(TipoSala.INDIVIDUAL);
+        assertThat(sala.getCapacidade()).isEqualTo(4);
+    }
 }

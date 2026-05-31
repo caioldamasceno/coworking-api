@@ -1,9 +1,11 @@
 package com.coworking.exception;
 
 import com.coworking.dto.response.ErroResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -19,10 +21,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(corpo);
     }
 
-    @ExceptionHandler(ConflitoDeHorarioException.class)
-    public ResponseEntity<ErroResponse> tratarConflito(ConflitoDeHorarioException ex) {
-        ErroResponse corpo = new ErroResponse(HttpStatus.CONFLICT.value(), "Conflito de horario", ex.getMessage());
+    @ExceptionHandler(ConflitoException.class)
+    public ResponseEntity<ErroResponse> tratarConflito(ConflitoException ex) {
+        ErroResponse corpo = new ErroResponse(HttpStatus.CONFLICT.value(), "Conflito", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(corpo);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErroResponse> tratarViolacaoDeIntegridade(DataIntegrityViolationException ex) {
+        ErroResponse corpo = new ErroResponse(HttpStatus.CONFLICT.value(), "Conflito",
+                "A operacao viola uma restricao de integridade dos dados");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpo);
+    }
+
+    @ExceptionHandler(RequisicaoInvalidaException.class)
+    public ResponseEntity<ErroResponse> tratarRequisicaoInvalida(RequisicaoInvalidaException ex) {
+        ErroResponse corpo = new ErroResponse(HttpStatus.BAD_REQUEST.value(), "Requisicao invalida", ex.getMessage());
+        return ResponseEntity.badRequest().body(corpo);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErroResponse> tratarParametroObrigatorio(MissingServletRequestParameterException ex) {
+        ErroResponse corpo = new ErroResponse(HttpStatus.BAD_REQUEST.value(), "Requisicao invalida",
+                "O parametro obrigatorio '" + ex.getParameterName() + "' nao foi informado");
+        return ResponseEntity.badRequest().body(corpo);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -11,4 +11,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findBySalaIdAndData(Long salaId, LocalDate data);
 
     List<Reserva> findByDataOrderByHoraInicioAsc(LocalDate data);
+
+    boolean existsBySalaIdAndDataGreaterThanEqual(Long salaId, LocalDate data);
 }

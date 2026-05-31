@@ -1,7 +1,9 @@
 package com.coworking.dto.request;
 
+import com.coworking.domain.Funcionamento;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,6 +16,7 @@ public record ReservaRequestDTO(
         Long salaId,
 
         @NotNull(message = "A data é obrigatória")
+        @FutureOrPresent(message = "A data da reserva não pode ser no passado")
         LocalDate data,
 
         @NotNull(message = "A hora de início é obrigatória")
@@ -33,5 +36,13 @@ public record ReservaRequestDTO(
     @AssertTrue(message = "A hora de início deve ser antes da hora de fim")
     public boolean isIntervaloValido() {
         return horaInicio == null || horaFim == null || horaInicio.isBefore(horaFim);
+    }
+
+    @AssertTrue(message = "O horário deve estar dentro do funcionamento do coworking (08:00 às 22:00)")
+    public boolean isDentroDoFuncionamento() {
+        if (horaInicio == null || horaFim == null) {
+            return true;
+        }
+        return Funcionamento.contem(horaInicio, horaFim);
     }
 }

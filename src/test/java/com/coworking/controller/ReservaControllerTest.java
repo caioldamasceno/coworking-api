@@ -105,6 +105,39 @@ class ReservaControllerTest {
     }
 
     @Test
+    void criar_comDataPassada_deveRetornar400() throws Exception {
+        ReservaRequestDTO invalido = new ReservaRequestDTO(1L, LocalDate.now().minusDays(1),
+                LocalTime.of(10, 0), LocalTime.of(11, 0), "Caio", "caio@email.com");
+
+        mockMvc.perform(post("/reservas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalido)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void criar_comHorarioAntesDaAbertura_deveRetornar400() throws Exception {
+        ReservaRequestDTO invalido = new ReservaRequestDTO(1L, LocalDate.of(2026, 6, 1),
+                LocalTime.of(7, 0), LocalTime.of(9, 0), "Caio", "caio@email.com");
+
+        mockMvc.perform(post("/reservas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalido)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void criar_comHorarioDepoisDoFechamento_deveRetornar400() throws Exception {
+        ReservaRequestDTO invalido = new ReservaRequestDTO(1L, LocalDate.of(2026, 6, 1),
+                LocalTime.of(21, 0), LocalTime.of(23, 0), "Caio", "caio@email.com");
+
+        mockMvc.perform(post("/reservas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalido)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void cancelar_comIdExistente_deveRetornar204() throws Exception {
         mockMvc.perform(delete("/reservas/99"))
                 .andExpect(status().isNoContent());
