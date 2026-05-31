@@ -123,4 +123,26 @@ class ReservaServiceImplTest {
                 .isInstanceOf(RecursoNaoEncontradoException.class);
         verify(reservaRepository, never()).deleteById(any());
     }
+
+    @Test
+    void listarPorData_deveRetornarReservasDoDiaConvertidas() {
+        Reserva r1 = new Reserva(sala, DIA, LocalTime.of(9, 0), LocalTime.of(10, 0), "Ana", "ana@email.com");
+        r1.setId(1L);
+        Reserva r2 = new Reserva(sala, DIA, LocalTime.of(11, 0), LocalTime.of(12, 0), "Caio", "caio@email.com");
+        r2.setId(2L);
+        when(reservaRepository.findByDataOrderByHoraInicioAsc(DIA)).thenReturn(List.of(r1, r2));
+
+        List<ReservaResponseDTO> resultado = reservaService.listarPorData(DIA);
+
+        assertThat(resultado).hasSize(2);
+        assertThat(resultado).extracting(ReservaResponseDTO::id).containsExactly(1L, 2L);
+        assertThat(resultado).extracting(ReservaResponseDTO::responsavel).containsExactly("Ana", "Caio");
+    }
+
+    @Test
+    void listarPorData_quandoNaoHaReservas_deveRetornarListaVazia() {
+        when(reservaRepository.findByDataOrderByHoraInicioAsc(DIA)).thenReturn(List.of());
+
+        assertThat(reservaService.listarPorData(DIA)).isEmpty();
+    }
 }

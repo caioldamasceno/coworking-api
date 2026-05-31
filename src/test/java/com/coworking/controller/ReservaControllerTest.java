@@ -15,11 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -116,5 +118,18 @@ class ReservaControllerTest {
         mockMvc.perform(delete("/reservas/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void listarPorData_deveRetornar200ComAsReservas() throws Exception {
+        ReservaResponseDTO reserva = new ReservaResponseDTO(1L, 1L, "Sala Azul",
+                LocalDate.of(2026, 6, 1), LocalTime.of(10, 0), LocalTime.of(11, 0), "Caio", "caio@email.com");
+        when(reservaService.listarPorData(LocalDate.of(2026, 6, 1))).thenReturn(List.of(reserva));
+
+        mockMvc.perform(get("/reservas").param("data", "2026-06-01"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].salaNome").value("Sala Azul"))
+                .andExpect(jsonPath("$[0].responsavel").value("Caio"));
     }
 }

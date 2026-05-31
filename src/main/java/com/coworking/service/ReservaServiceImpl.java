@@ -13,6 +13,7 @@ import com.coworking.repository.SalaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -55,5 +56,13 @@ public class ReservaServiceImpl implements ReservaService {
             throw new RecursoNaoEncontradoException("Reserva não encontrada: " + id);
         }
         reservaRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservaResponseDTO> listarPorData(LocalDate data) {
+        return reservaRepository.findByDataOrderByHoraInicioAsc(data).stream()
+                .map(reservaMapper::toResponse)
+                .toList();
     }
 }
