@@ -32,6 +32,8 @@ Pré-requisito: JDK 17 instalado.
 ./mvnw spring-boot:run
 ```
 
+No Windows, use `mvnw.cmd spring-boot:run` (ou `.\mvnw spring-boot:run` no PowerShell).
+
 A aplicação sobe em `http://localhost:8080`.
 
 | Recurso | URL |
@@ -67,6 +69,8 @@ Conexão do console H2: **JDBC URL** `jdbc:h2:mem:coworking`, **usuário** `sa`,
 | GET | `/reservas?data=AAAA-MM-DD` | Agenda do dia (ordenada por horário) | 200 |
 
 ## Exemplos
+
+> O banco H2 é em memória e **inicia vazio** a cada execução. Rode os exemplos na ordem: cadastre uma sala antes de criar uma reserva (a primeira sala cadastrada recebe `id = 1`).
 
 Cadastrar uma sala:
 
@@ -141,7 +145,8 @@ curl -X DELETE http://localhost:8080/reservas/1
   outra) **não** conflitam. Uma tentativa de reserva conflitante retorna `409 Conflict`.
 - **Disponibilidade:** os horários livres de uma sala são a janela de funcionamento (08:00–22:00)
   menos as reservas do dia. Sem `horaInicio`/`horaFim`, retorna as salas que têm algum horário livre,
-  com a lista de intervalos livres. Com um intervalo informado, retorna apenas as salas livres naquele intervalo.
+  com a lista de intervalos livres. Com um intervalo informado, retorna apenas as salas livres naquele
+  intervalo — e, para cada uma, a lista `horariosLivres` continua mostrando todos os intervalos livres do dia.
 - **Exclusão de sala:** bloqueada (`409 Conflict`) se existirem reservas **futuras** vinculadas à sala.
 - **Cancelamento:** remove a reserva definitivamente.
 - **Erros** retornam JSON padronizado com `timestamp`, `status`, `erro`, `mensagem` e,
