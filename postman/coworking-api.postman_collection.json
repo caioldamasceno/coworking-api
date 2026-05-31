@@ -1,0 +1,263 @@
+{
+  "info": {
+    "name": "Coworking API",
+    "description": "Colecao de testes ponta a ponta da API de reservas de coworking. Assume o banco H2 em memoria iniciando vazio (a 1a sala cadastrada recebe id=1).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" }
+  ],
+  "item": [
+    {
+      "name": "Cadastrar Sala Azul (COLETIVA) -> 201",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nome\":\"Sala Azul\",\"tipo\":\"COLETIVA\",\"capacidade\":10}" },
+        "url": { "raw": "{{baseUrl}}/salas", "host": ["{{baseUrl}}"], "path": ["salas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 201', () => pm.response.to.have.status(201));",
+        "pm.test('id 1', () => pm.expect(pm.response.json().id).to.eql(1));"
+      ] } }]
+    },
+    {
+      "name": "Cadastrar Sala Foco (INDIVIDUAL) -> 201",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nome\":\"Sala Foco\",\"tipo\":\"INDIVIDUAL\",\"capacidade\":4}" },
+        "url": { "raw": "{{baseUrl}}/salas", "host": ["{{baseUrl}}"], "path": ["salas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 201', () => pm.response.to.have.status(201));"
+      ] } }]
+    },
+    {
+      "name": "Cadastrar Auditorio Central (AUDITORIO) -> 201",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nome\":\"Auditorio Central\",\"tipo\":\"AUDITORIO\",\"capacidade\":30}" },
+        "url": { "raw": "{{baseUrl}}/salas", "host": ["{{baseUrl}}"], "path": ["salas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 201', () => pm.response.to.have.status(201));"
+      ] } }]
+    },
+    {
+      "name": "Cadastrar nome duplicado -> 409",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nome\":\"Sala Azul\",\"tipo\":\"COLETIVA\",\"capacidade\":8}" },
+        "url": { "raw": "{{baseUrl}}/salas", "host": ["{{baseUrl}}"], "path": ["salas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 409', () => pm.response.to.have.status(409));"
+      ] } }]
+    },
+    {
+      "name": "Cadastrar capacidade invalida (2) -> 400",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nome\":\"Sala X\",\"tipo\":\"COLETIVA\",\"capacidade\":2}" },
+        "url": { "raw": "{{baseUrl}}/salas", "host": ["{{baseUrl}}"], "path": ["salas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 400', () => pm.response.to.have.status(400));",
+        "pm.test('campo capacidade', () => pm.expect(pm.response.json().campos).to.have.property('capacidade'));"
+      ] } }]
+    },
+    {
+      "name": "Listar salas (paginado) -> 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas?sort=nome,asc", "host": ["{{baseUrl}}"], "path": ["salas"], "query": [{ "key": "sort", "value": "nome,asc" }] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 200', () => pm.response.to.have.status(200));",
+        "pm.test('tem content e totalElements', () => { const b = pm.response.json(); pm.expect(b).to.have.property('content'); pm.expect(b.totalElements).to.eql(3); });"
+      ] } }]
+    },
+    {
+      "name": "Listar por tipo INDIVIDUAL -> 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas?tipo=INDIVIDUAL", "host": ["{{baseUrl}}"], "path": ["salas"], "query": [{ "key": "tipo", "value": "INDIVIDUAL" }] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 200', () => pm.response.to.have.status(200));",
+        "pm.test('apenas individuais', () => { const c = pm.response.json().content; pm.expect(c).to.have.lengthOf(1); pm.expect(c[0].tipo).to.eql('INDIVIDUAL'); });"
+      ] } }]
+    },
+    {
+      "name": "Criar reserva Sala 1 (10:00-11:00) -> 201",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"salaId\":1,\"data\":\"2026-06-01\",\"horaInicio\":\"10:00\",\"horaFim\":\"11:00\",\"responsavel\":\"Caio\",\"email\":\"caio@email.com\"}" },
+        "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 201', () => pm.response.to.have.status(201));",
+        "pm.test('salaNome preenchido', () => pm.expect(pm.response.json().salaNome).to.eql('Sala Azul'));"
+      ] } }]
+    },
+    {
+      "name": "Reserva conflitante (10:30-11:30) -> 409",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"salaId\":1,\"data\":\"2026-06-01\",\"horaInicio\":\"10:30\",\"horaFim\":\"11:30\",\"responsavel\":\"Ana\",\"email\":\"ana@email.com\"}" },
+        "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 409', () => pm.response.to.have.status(409));"
+      ] } }]
+    },
+    {
+      "name": "Reserva em data passada -> 400",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"salaId\":1,\"data\":\"2020-01-01\",\"horaInicio\":\"10:00\",\"horaFim\":\"11:00\",\"responsavel\":\"X\",\"email\":\"x@x.com\"}" },
+        "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 400', () => pm.response.to.have.status(400));"
+      ] } }]
+    },
+    {
+      "name": "Reserva fora do funcionamento (07:00) -> 400",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"salaId\":1,\"data\":\"2026-06-01\",\"horaInicio\":\"07:00\",\"horaFim\":\"09:00\",\"responsavel\":\"X\",\"email\":\"x@x.com\"}" },
+        "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 400', () => pm.response.to.have.status(400));"
+      ] } }]
+    },
+    {
+      "name": "Reserva em sala inexistente (99) -> 404",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"salaId\":99,\"data\":\"2026-06-01\",\"horaInicio\":\"14:00\",\"horaFim\":\"15:00\",\"responsavel\":\"Z\",\"email\":\"z@z.com\"}" },
+        "url": { "raw": "{{baseUrl}}/reservas", "host": ["{{baseUrl}}"], "path": ["reservas"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 404', () => pm.response.to.have.status(404));"
+      ] } }]
+    },
+    {
+      "name": "Agenda do dia -> 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/reservas?data=2026-06-01", "host": ["{{baseUrl}}"], "path": ["reservas"], "query": [{ "key": "data", "value": "2026-06-01" }] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 200', () => pm.response.to.have.status(200));",
+        "pm.test('uma reserva', () => pm.expect(pm.response.json()).to.have.lengthOf(1));"
+      ] } }]
+    },
+    {
+      "name": "Disponibilidade do dia (slots livres) -> 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas/disponibilidade?data=2026-06-01", "host": ["{{baseUrl}}"], "path": ["salas", "disponibilidade"], "query": [{ "key": "data", "value": "2026-06-01" }] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 200', () => pm.response.to.have.status(200));",
+        "pm.test('Sala Azul com 2 intervalos livres', () => { const azul = pm.response.json().find(s => s.id === 1); pm.expect(azul.horariosLivres).to.have.lengthOf(2); });"
+      ] } }]
+    },
+    {
+      "name": "Disponibilidade no intervalo 10:30-11:00 (Sala Azul sai) -> 200",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas/disponibilidade?data=2026-06-01&horaInicio=10:30&horaFim=11:00", "host": ["{{baseUrl}}"], "path": ["salas", "disponibilidade"], "query": [{ "key": "data", "value": "2026-06-01" }, { "key": "horaInicio", "value": "10:30" }, { "key": "horaFim", "value": "11:00" }] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 200', () => pm.response.to.have.status(200));",
+        "pm.test('Sala Azul (id 1) nao aparece', () => { const ids = pm.response.json().map(s => s.id); pm.expect(ids).to.not.include(1); });"
+      ] } }]
+    },
+    {
+      "name": "Disponibilidade sem data -> 400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas/disponibilidade", "host": ["{{baseUrl}}"], "path": ["salas", "disponibilidade"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 400', () => pm.response.to.have.status(400));"
+      ] } }]
+    },
+    {
+      "name": "Atualizar Sala 1 (PUT) -> 200",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nome\":\"Sala Verde\",\"tipo\":\"COLETIVA\",\"capacidade\":12}" },
+        "url": { "raw": "{{baseUrl}}/salas/1", "host": ["{{baseUrl}}"], "path": ["salas", "1"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 200', () => pm.response.to.have.status(200));",
+        "pm.test('nome atualizado', () => pm.expect(pm.response.json().nome).to.eql('Sala Verde'));"
+      ] } }]
+    },
+    {
+      "name": "Excluir Sala 3 sem reserva -> 204",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas/3", "host": ["{{baseUrl}}"], "path": ["salas", "3"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 204', () => pm.response.to.have.status(204));"
+      ] } }]
+    },
+    {
+      "name": "Excluir Sala 1 com reserva futura -> 409",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/salas/1", "host": ["{{baseUrl}}"], "path": ["salas", "1"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 409', () => pm.response.to.have.status(409));"
+      ] } }]
+    },
+    {
+      "name": "Cancelar reserva 1 -> 204",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/reservas/1", "host": ["{{baseUrl}}"], "path": ["reservas", "1"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 204', () => pm.response.to.have.status(204));"
+      ] } }]
+    },
+    {
+      "name": "Cancelar reserva inexistente -> 404",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/reservas/999", "host": ["{{baseUrl}}"], "path": ["reservas", "999"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('status 404', () => pm.response.to.have.status(404));"
+      ] } }]
+    }
+  ]
+}

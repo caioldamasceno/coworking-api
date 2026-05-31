@@ -161,6 +161,18 @@ curl -X DELETE http://localhost:8080/reservas/1
 Executa a suíte completa e a verificação de cobertura (JaCoCo). O build falha se a
 cobertura de linhas ficar abaixo de 85%.
 
+### Coleção do Postman
+
+Em `postman/coworking-api.postman_collection.json` há uma coleção que exercita todas as
+rotas (incluindo cenários de erro) com asserções de status e de corpo. Com a aplicação no ar,
+importe a coleção no Postman ou rode pela linha de comando:
+
+```bash
+npx newman run postman/coworking-api.postman_collection.json
+```
+
+A coleção assume o banco vazio (rode com a aplicação recém-iniciada).
+
 ## Estrutura do projeto
 
 ```
