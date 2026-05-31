@@ -17,7 +17,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -98,5 +100,21 @@ class ReservaControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalido)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void cancelar_comIdExistente_deveRetornar204() throws Exception {
+        mockMvc.perform(delete("/reservas/99"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void cancelar_quandoNaoExiste_deveRetornar404() throws Exception {
+        doThrow(new RecursoNaoEncontradoException("Reserva nao encontrada: 99"))
+                .when(reservaService).cancelar(99L);
+
+        mockMvc.perform(delete("/reservas/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
     }
 }

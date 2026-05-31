@@ -47,4 +47,13 @@ public class ReservaServiceImpl implements ReservaService {
         Reserva salva = reservaRepository.save(reserva);
         return reservaMapper.toResponse(salva);
     }
+
+    @Override
+    @Transactional
+    public void cancelar(Long id) {
+        if (!reservaRepository.existsById(id)) {
+            throw new RecursoNaoEncontradoException("Reserva não encontrada: " + id);
+        }
+        reservaRepository.deleteById(id);
+    }
 }

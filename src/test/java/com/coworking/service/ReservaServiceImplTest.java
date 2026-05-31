@@ -105,4 +105,22 @@ class ReservaServiceImplTest {
         assertThat(resposta.id()).isEqualTo(5L);
         verify(reservaRepository).save(any(Reserva.class));
     }
+
+    @Test
+    void cancelar_comIdExistente_deveDeletar() {
+        when(reservaRepository.existsById(99L)).thenReturn(true);
+
+        reservaService.cancelar(99L);
+
+        verify(reservaRepository).deleteById(99L);
+    }
+
+    @Test
+    void cancelar_comIdInexistente_deveLancarNaoEncontrado() {
+        when(reservaRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> reservaService.cancelar(99L))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(reservaRepository, never()).deleteById(any());
+    }
 }
