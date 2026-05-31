@@ -87,29 +87,39 @@ public class SalaServiceImpl implements SalaService {
     @Transactional(readOnly = true)
     public List<SalaDisponivelDTO> listarDisponiveis(LocalDate data, LocalTime horaInicio, LocalTime horaFim) {
         IntervaloHorario funcionamento = Funcionamento.intervalo();
-        IntervaloHorario intervaloDesejado = (horaInicio != null && horaFim != null)
-                ? new IntervaloHorario(horaInicio, horaFim)
-                : null;
-
-        Map<Long, List<IntervaloHorario>> ocupadosPorSala = reservaRepository.findByDataOrderByHoraInicioAsc(data).stream()
-                .collect(Collectors.groupingBy(
-                        reserva -> reserva.getSala().getId(),
-                        Collectors.mapping(
-                                reserva -> new IntervaloHorario(reserva.getHoraInicio(), reserva.getHoraFim()),
-                                Collectors.toList())));
-
-        record Disponibilidade(Sala sala, List<IntervaloHorario> ocupados, List<IntervaloHorario> livres) {
-        }
+        IntervaloHorario intervaloDesejado = intervaloDesejado(horaInicio, horaFim);
+        Map<Long, List<IntervaloHorario>> ocupadosPorSala = ocupadosPorSala(data);
 
         return salaRepository.findAll().stream()
                 .map(sala -> {
                     List<IntervaloHorario> ocupados = ocupadosPorSala.getOrDefault(sala.getId(), List.of());
                     return new Disponibilidade(sala, ocupados, funcionamento.subtrair(ocupados));
                 })
-                .filter(disp -> intervaloDesejado != null
-                        ? disp.ocupados().stream().noneMatch(intervaloDesejado::sobrepoe)
-                        : !disp.livres().isEmpty())
+                .filter(disp -> estaDisponivel(disp, intervaloDesejado))
                 .map(disp -> salaMapper.toDisponivel(disp.sala(), disp.livres()))
                 .toList();
+    }
+
+    private static IntervaloHorario intervaloDesejado(LocalTime horaInicio, LocalTime horaFim) {
+        return (horaInicio != null && horaFim != null) ? new IntervaloHorario(horaInicio, horaFim) : null;
+    }
+
+    private Map<Long, List<IntervaloHorario>> ocupadosPorSala(LocalDate data) {
+        return reservaRepository.findByDataOrderByHoraInicioAsc(data).stream()
+                .collect(Collectors.groupingBy(
+                        reserva -> reserva.getSala().getId(),
+                        Collectors.mapping(
+                                reserva -> new IntervaloHorario(reserva.getHoraInicio(), reserva.getHoraFim()),
+                                Collectors.toList())));
+    }
+
+    private static boolean estaDisponivel(Disponibilidade disp, IntervaloHorario intervaloDesejado) {
+        if (intervaloDesejado != null) {
+            return disp.ocupados().stream().noneMatch(intervaloDesejado::sobrepoe);
+        }
+        return !disp.livres().isEmpty();
+    }
+
+    private record Disponibilidade(Sala sala, List<IntervaloHorario> ocupados, List<IntervaloHorario> livres) {
     }
 }
