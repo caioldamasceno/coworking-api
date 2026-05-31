@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,5 +73,27 @@ class SalaServiceTest {
         List<SalaResponseDTO> resultado = salaService.listarTodas();
 
         assertThat(resultado).isEmpty();
+    }
+
+    @Test
+    void listarLivresPorData_deveConverterSalasLivresEmDto() {
+        LocalDate dia = LocalDate.of(2026, 6, 1);
+        Sala livre = new Sala("Sala Azul", TipoSala.COLETIVA, 10);
+        livre.setId(1L);
+        when(salaRepository.findLivresPorData(dia)).thenReturn(List.of(livre));
+
+        List<SalaResponseDTO> resultado = salaService.listarLivresPorData(dia);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado).extracting(SalaResponseDTO::id).containsExactly(1L);
+        assertThat(resultado).extracting(SalaResponseDTO::nome).containsExactly("Sala Azul");
+    }
+
+    @Test
+    void listarLivresPorData_quandoTodasOcupadas_deveRetornarListaVazia() {
+        LocalDate dia = LocalDate.of(2026, 6, 1);
+        when(salaRepository.findLivresPorData(dia)).thenReturn(List.of());
+
+        assertThat(salaService.listarLivresPorData(dia)).isEmpty();
     }
 }

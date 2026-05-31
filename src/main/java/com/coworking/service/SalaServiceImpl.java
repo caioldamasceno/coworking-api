@@ -6,7 +6,9 @@ import com.coworking.entity.Sala;
 import com.coworking.mapper.SalaMapper;
 import com.coworking.repository.SalaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,6 +32,14 @@ public class SalaServiceImpl implements SalaService {
     @Override
     public List<SalaResponseDTO> listarTodas() {
         return salaRepository.findAll().stream()
+                .map(salaMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SalaResponseDTO> listarLivresPorData(LocalDate data) {
+        return salaRepository.findLivresPorData(data).stream()
                 .map(salaMapper::toResponse)
                 .toList();
     }

@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -89,6 +90,17 @@ class SalaControllerTest {
                 new SalaResponseDTO(1L, "Sala Azul", TipoSala.COLETIVA, 10)));
 
         mockMvc.perform(get("/salas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Sala Azul"));
+    }
+
+    @Test
+    void listarLivres_deveRetornar200ComAsSalasLivres() throws Exception {
+        when(salaService.listarLivresPorData(LocalDate.of(2026, 6, 1)))
+                .thenReturn(List.of(new SalaResponseDTO(1L, "Sala Azul", TipoSala.COLETIVA, 10)));
+
+        mockMvc.perform(get("/salas/livres").param("data", "2026-06-01"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].nome").value("Sala Azul"));
